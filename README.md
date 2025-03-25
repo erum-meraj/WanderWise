@@ -75,53 +75,9 @@ The bot leverages _Azure OpenAI (GPT-4)_ for conversational AI, _Amadeus API_ fo
 | Create Post    | ![Create Post](static/post_ss.png)   |
 | Trip Planning  | ![Trip Planning](static/plan_ss.png) |
 
-## Flow Diagram for Travel Planner Chatbot
+## Travel Bot Flowchart
 
-                      +----------------------------------+
-                      |      User Interacts with Bot    |
-                      +----------------------------------+
-                                     |
-                      +----------------------------------+
-                      |  AI Asks for Preferences        |
-                      |  (Destination, Budget, Dates,  |
-                      |  Interests)                    |
-                      +----------------------------------+
-                                     |
-                      +----------------------------------+
-                      |  AI Generates Itinerary        |
-                      |  (GPT-4 Processes & Refines)   |
-                      +----------------------------------+
-                                     |
-                      +----------------------------------+
-                      |  User Reviews & Confirms Plan  |
-                      +----------------------------------+
-                                     |
-           +-------------------------+-------------------------+
-           |                                                   |
-
-+--------------------------+ +--------------------------+
-| Fetch Flight & Hotel | | Provide Historical & |
-| Options (Amadeus API) | | Cultural Insights |
-+--------------------------+ | Based on Location |
-| +--------------------------+
-+--------------------------+ |
-| User Selects & Books | |
-+--------------------------+ |
-| |
-+--------------------------+ |
-| AI Uses Tavily Search | <---------------------------------+
-| to Answer Queries |
-+--------------------------+
-|
-+--------------------------+
-| User Can Post Blogs, |
-| Videos, Podcasts |
-+--------------------------+
-|
-+--------------------------+
-| Guardrails for Responsible AI |
-| (PII Remover, Privacy, Security) |
-+--------------------------+
+![Travel Bot Flowchart](static/Flow Diagram.png)
 
 ## Contribution
 
