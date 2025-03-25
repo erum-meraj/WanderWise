@@ -1,12 +1,10 @@
 import datetime
 import os
 import requests
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import firebase_admin
 from firebase_admin import credentials, auth
-import requests
-from flask import jsonify
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Generate a random secret key for session security
@@ -15,13 +13,9 @@ app.secret_key = os.urandom(24)  # Generate a random secret key for session secu
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blogs.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-messages = [
-        {"role": "system", "content": "You are a helpful travel assistant who creates and updates detailed and personalized travel itineraries. Take feedback and adjust the plan accordingly."}
-    ]
-
-api_url = "https://ai-aihackthonhub282549186415.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=2025-01-01-preview"
+# Azure OpenAI Configuration
+api_url = "https://ai-aihackthonhub282549186415.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=2023-05-15"
 api_key = "Fj1KPt7grC6bAkNja7daZUstpP8wZTXsV6Zjr2FOxkO7wsBQ5SzQJQQJ99BCACHYHv6XJ3w3AAAAACOGL3Xg"
-
 
 # Image Upload Configuration
 UPLOAD_FOLDER = 'static/'
@@ -32,8 +26,6 @@ db = SQLAlchemy(app)
 
 # Firebase Admin SDK Initialization
 cred = credentials.Certificate("we-trail-tales-firebase-adminsdk-fbsvc-270e521c2e.json")  
-
-# cred = credentials.Certificate("we-trail-tales-firebase-adminsdk-fbsvc-8c32fc54f1.json")  
 firebase_admin.initialize_app(cred)
 
 # Firebase REST API Endpoint
@@ -47,9 +39,16 @@ class Blog(db.Model):
     title = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text, nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
-    video_url = db.Column(db.String(255), nullable=True)  # Added
-    audio_url = db.Column(db.String(255), nullable=True)  # Added
+    video_url = db.Column(db.String(255), nullable=True)
+    audio_url = db.Column(db.String(255), nullable=True)
     date_published = db.Column(db.Date, nullable=False, default=datetime.date.today)
+
+@app.before_request
+def initialize_session_variables():
+    if 'messages' not in session:
+        session['messages'] = [
+            {"role": "system", "content": "You are a helpful travel assistant who creates and updates detailed and personalized travel itineraries. Take feedback and adjust the plan accordingly."}
+        ]
 
 # Routes
 @app.route('/')
@@ -72,45 +71,80 @@ def faqs():
 def dashboard():
     return render_template('dashboard.html')
 
-# CHATBOT APIs
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    try:
+        data = request.get_json()  # Safer way to get JSON data
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        user_message = data.get("message", "").strip()
+        if not user_message:
+            return jsonify({"error": "Message cannot be empty"}), 400
+
+        # Get messages from session and add new user message
+        messages = session.get('messages', [])
+        messages.append({"role": "user", "content": user_message})
+        
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": api_key,
+        }
+
+        payload = {
+            "messages": messages,
+            "max_tokens": 1000,
+            "temperature": 0.7,
+        }
+
+        response = requests.post(api_url, headers=headers, json=payload, timeout=30)
+
+        if response.status_code == 200:
+            ai_response = response.json().get("choices", [{}])[0].get("message", {}).get("content", "Sorry, I couldn't process that request.")
+            # Add AI response to messages and update session
+            messages.append({"role": "assistant", "content": ai_response})
+            session['messages'] = messages
+            session.modified = True
+            return jsonify({"response": ai_response})
+        else:
+            error_msg = f"API error: {response.status_code}"
+            if response.text:
+                error_msg += f" - {response.text[:200]}"
+            return jsonify({"error": error_msg}), 500
+            
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+@app.route('/clear_chat', methods=['POST'])
+def clear_chat():
+    try:
+        # Reset the chat history while keeping the system message
+        session['messages'] = [
+            {"role": "system", "content": "You are a helpful travel assistant who creates and updates detailed and personalized travel itineraries. Take feedback and adjust the plan accordingly."}
+        ]
+        session.modified = True
+        return jsonify({"status": "Chat history cleared"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_chat_history')
+def get_chat_history():
+    return jsonify({"messages": session.get('messages', [])})
 
 @app.route('/start_chat', methods=['GET'])
 def start_chat():
-    # Check if this is a new conversation (only system message exists)
-    if len(session.get('messages', [])) <= 1:
-        greeting = "Hello! I'm your travel assistant. How can I help you plan your trip today?"
-        session['messages'].append({"role": "assistant", "content": greeting})
-        session.modified = True
-        return jsonify({"greeting": greeting})
-    return jsonify({"greeting": None})
-@app.route('/chatbot', methods=['POST'])
-def chatbot():
-    data = request.json  # Get JSON data from frontend
-    user_message = data.get("message")
-    print(user_message)
-    if not user_message:
-        return jsonify({"error": "No message provided"}), 400
-
-    messages.append({"role": "user", "content": user_message})
-    headers = {
-        "Content-Type": "application/json",
-        "api-key": api_key,
-    }
-
-    payload = {
-        "messages": messages,
-        "max_tokens": 1000,
-        "temperature": 0.7,
-    }
-
-    response = requests.post(api_url, headers=headers, json=payload)
-
-    if response.status_code == 200:
-        ai_response = response.json()["choices"][0]["message"]["content"]
-        return jsonify({"response": ai_response})
-    else:
-        print({response.status_code}, {response.text})
-        return jsonify({"error": f"API error: {response.status_code}, {response.text}"}), 500
+    try:
+        # Check if this is a new conversation (only system message exists)
+        messages = session.get('messages', [])
+        if len(messages) <= 1:
+            greeting = "Hello! I'm your travel assistant. How can I help you plan your trip today?"
+            messages.append({"role": "assistant", "content": greeting})
+            session['messages'] = messages
+            session.modified = True
+            return jsonify({"greeting": greeting})
+        return jsonify({"greeting": None})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/travel_stories')
 def travel_stories():
@@ -133,61 +167,72 @@ def create_blog():
         return redirect(url_for("login"))
 
     if request.method == 'POST':
-        category = request.form.get('category')
-        title = request.form.get('title')
-        content = request.form.get('content')
-        image = request.files.get('image')
-        video = request.files.get('video')
-        audio = request.files.get('audio')
+        try:
+            category = request.form.get('category')
+            title = request.form.get('title')
+            content = request.form.get('content')
+            image = request.files.get('image')
+            video = request.files.get('video')
+            audio = request.files.get('audio')
 
-        image_filename = None
-        video_filename = None
-        audio_filename = None
+            if not all([category, title]):
+                flash("Category and title are required!", "danger")
+                return redirect(request.url)
 
-        if image:
-            image_filename = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-            image.save(image_filename)
+            image_filename = None
+            video_filename = None
+            audio_filename = None
 
-        if video:
-            video_filename = os.path.join(app.config['UPLOAD_FOLDER'], video.filename)
-            video.save(video_filename)
+            if image and image.filename:
+                image_filename = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+                image.save(image_filename)
 
-        if audio:
-            audio_filename = os.path.join(app.config['UPLOAD_FOLDER'], audio.filename)
-            audio.save(audio_filename)
+            if video and video.filename:
+                video_filename = os.path.join(app.config['UPLOAD_FOLDER'], video.filename)
+                video.save(video_filename)
 
-        new_blog = Blog(
-            category=category,
-            title=title,
-            content=content if category == 'blog' else '',
-            image_url="/" + image_filename if image_filename else None,
-            video_url="/" + video_filename if video_filename else None,
-            audio_url="/" + audio_filename if audio_filename else None
-        )
+            if audio and audio.filename:
+                audio_filename = os.path.join(app.config['UPLOAD_FOLDER'], audio.filename)
+                audio.save(audio_filename)
 
-        db.session.add(new_blog)
-        db.session.commit()
-        flash("Blog created successfully!", "success")
-        return redirect(url_for('travel_stories'))
+            new_blog = Blog(
+                category=category,
+                title=title,
+                content=content if category == 'blog' else '',
+                image_url=f"/{image_filename}" if image_filename else None,
+                video_url=f"/{video_filename}" if video_filename else None,
+                audio_url=f"/{audio_filename}" if audio_filename else None
+            )
+
+            db.session.add(new_blog)
+            db.session.commit()
+            flash("Blog created successfully!", "success")
+            return redirect(url_for('travel_stories'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error creating blog: {str(e)}", "danger")
+            return redirect(request.url)
 
     return render_template('create_blog.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        print(f"Login attempt: {email} - {password}")  # Debugging
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not email or not password:
+            flash("Email and password are required!", "danger")
+            return redirect(url_for('login'))
 
         try:
             response = requests.post(FIREBASE_AUTH_URL, json={
                 "email": email, 
                 "password": password, 
                 "returnSecureToken": True
-            })
-            data = response.json()
+            }, timeout=10)
             
-            print(f"Firebase Response: {data}")  # Debugging
+            data = response.json()
 
             if "idToken" in data:
                 user = auth.get_user_by_email(email)
@@ -198,20 +243,23 @@ def login():
             else:
                 error_message = data.get("error", {}).get("message", "Invalid email or password!")
                 flash(f"Login failed: {error_message}", "danger")
-                print(f"Login failed: {error_message}")  # Debugging
+        except requests.Timeout:
+            flash("Login timeout. Please try again.", "danger")
         except Exception as e:
             flash(f"Login error: {str(e)}", "danger")
-            print(f"Login error: {str(e)}")  # Debugging
     
     return render_template("login.html")
-
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not email or not password:
+            flash("Email and password are required!", "danger")
+            return redirect(url_for('signup'))
+
         try:
             user = auth.create_user(email=email, password=password)
             flash("Account created successfully! Please log in.", "success")
@@ -227,11 +275,9 @@ def logout():
     flash("Logged out successfully.", "info")
     return redirect(url_for('index'))
 
-
 @app.route('/plan-your-trip')
 def plan_your_trip():
     return render_template('plan_trip.html')
-
 
 if __name__ == '__main__':
     with app.app_context():
