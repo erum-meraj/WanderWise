@@ -5,6 +5,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 import firebase_admin
 from firebase_admin import credentials, auth
+import requests
+from flask import jsonify
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Generate a random secret key for session security
@@ -12,6 +14,14 @@ app.secret_key = os.urandom(24)  # Generate a random secret key for session secu
 # Database Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blogs.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+messages = [
+        {"role": "system", "content": "You are a helpful travel assistant who creates and updates detailed and personalized travel itineraries. Take feedback and adjust the plan accordingly."}
+    ]
+
+api_url = "https://ai-aihackthonhub282549186415.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=2025-01-01-preview"
+api_key = "Fj1KPt7grC6bAkNja7daZUstpP8wZTXsV6Zjr2FOxkO7wsBQ5SzQJQQJ99BCACHYHv6XJ3w3AAAAACOGL3Xg"
+
 
 # Image Upload Configuration
 UPLOAD_FOLDER = 'static/'
@@ -62,6 +72,45 @@ def faqs():
 def dashboard():
     return render_template('dashboard.html')
 
+# CHATBOT APIs
+
+@app.route('/start_chat', methods=['GET'])
+def start_chat():
+    # Check if this is a new conversation (only system message exists)
+    if len(session.get('messages', [])) <= 1:
+        greeting = "Hello! I'm your travel assistant. How can I help you plan your trip today?"
+        session['messages'].append({"role": "assistant", "content": greeting})
+        session.modified = True
+        return jsonify({"greeting": greeting})
+    return jsonify({"greeting": None})
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    data = request.json  # Get JSON data from frontend
+    user_message = data.get("message")
+    print(user_message)
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+
+    messages.append({"role": "user", "content": user_message})
+    headers = {
+        "Content-Type": "application/json",
+        "api-key": api_key,
+    }
+
+    payload = {
+        "messages": messages,
+        "max_tokens": 1000,
+        "temperature": 0.7,
+    }
+
+    response = requests.post(api_url, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        ai_response = response.json()["choices"][0]["message"]["content"]
+        return jsonify({"response": ai_response})
+    else:
+        print({response.status_code}, {response.text})
+        return jsonify({"error": f"API error: {response.status_code}, {response.text}"}), 500
 
 @app.route('/travel_stories')
 def travel_stories():
@@ -181,31 +230,7 @@ def logout():
 
 @app.route('/plan-your-trip')
 def plan_your_trip():
-    place = request.args.get('place', 'Bali')  # Default to Bali if no place is specified
-    destinations = {
-        "Bali": {
-            "headerImage": "bali_header.jpg",
-            "description": "Explore the tropical paradise of Bali, Indonesia. From breathtaking beaches to rich cultural heritage, Bali has something for every traveler!",
-            "cards": [
-                {"image": "bali1.jpg", "title": "Beautiful Beaches", "text": "Relax on stunning beaches like Kuta, Seminyak, and Nusa Dua with crystal-clear waters and golden sands."},
-                {"image": "bali2.jpg", "title": "Cultural Heritage", "text": "Visit iconic temples like Tanah Lot and Uluwatu to experience Bali's rich spiritual and architectural beauty."},
-                {"image": "bali3.jpg", "title": "Adventure & Nature", "text": "Hike up Mount Batur for a sunrise trek or explore the lush rice terraces of Ubud for an unforgettable adventure."}
-            ]
-        },
-        "Paris": {
-            "headerImage": "paris_header.jpg",
-            "description": "Discover the romantic charm of Paris, France. From the Eiffel Tower to world-class cuisine, Paris is a dream destination for travelers.",
-            "cards": [
-                {"image": "paris_eiffel.jpg", "title": "Eiffel Tower", "text": "Enjoy breathtaking views from the top of the Eiffel Tower, one of the most famous landmarks in the world."},
-                {"image": "paris_louvre.jpg", "title": "The Louvre", "text": "Visit the Louvre Museum to see the Mona Lisa and countless other artistic masterpieces."},
-                {"image": "paris_cuisine.jpg", "title": "French Cuisine", "text": "Indulge in delicious French pastries, cheese, and fine dining in the culinary capital of the world."}
-            ]
-        }
-    }
-
-    data = destinations.get(place, destinations["Bali"])
-    
-    return render_template('plan_trip.html', place=place, data=data)
+    return render_template('plan_trip.html')
 
 
 if __name__ == '__main__':
