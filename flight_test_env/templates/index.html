@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flight Search</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .flight-leg {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      .add-leg-btn {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="mb-4">Flight Search</h1>
+      <form method="POST">
+        <div id="flight-legs">
+          <div class="flight-leg" id="leg-1">
+            <h4>Flight Leg 1</h4>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="origin_1" class="form-label">Origin Airport</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="origin_1"
+                  name="origin_1"
+                  placeholder="MAD"
+                  required
+                />
+              </div>
+              <div class="col-md-4">
+                <label for="destination_1" class="form-label"
+                  >Destination Airport</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="destination_1"
+                  name="destination_1"
+                  placeholder="PAR"
+                  required
+                />
+              </div>
+              <div class="col-md-4">
+                <label for="date_1" class="form-label">Departure Date</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="date_1"
+                  name="date_1"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-secondary add-leg-btn"
+          id="add-leg"
+        >
+          Add Another Flight Leg
+        </button>
+
+        <div class="mb-4">
+          <h4>Traveler Information</h4>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="num_adults" class="form-label"
+                >Number of Adults</label
+              >
+              <select class="form-select" id="num_adults" name="num_adults">
+                {% for i in range(1, 10) %}
+                <option value="{{ i }}">{{ i }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h4>Search Options</h4>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="max_offers" class="form-label"
+                >Max Flight Offers</label
+              >
+              <select class="form-select" id="max_offers" name="max_offers">
+                {% for i in range(1, 11) %}
+                <option value="{{ i }}">{{ i }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Search Flights</button>
+      </form>
+    </div>
+
+    <script>
+      let legCount = 1;
+
+      document.getElementById("add-leg").addEventListener("click", function () {
+        legCount++;
+        const newLeg = document.createElement("div");
+        newLeg.className = "flight-leg";
+        newLeg.id = `leg-${legCount}`;
+        newLeg.innerHTML = `
+                <h4>Flight Leg ${legCount}</h4>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="origin_${legCount}" class="form-label">Origin Airport</label>
+                        <input type="text" class="form-control" id="origin_${legCount}" name="origin_${legCount}" placeholder="MAD" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="destination_${legCount}" class="form-label">Destination Airport</label>
+                        <input type="text" class="form-control" id="destination_${legCount}" name="destination_${legCount}" placeholder="PAR" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="date_${legCount}" class="form-label">Departure Date</label>
+                        <input type="date" class="form-control" id="date_${legCount}" name="date_${legCount}" required>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger mt-2 remove-leg" data-leg="${legCount}">Remove Leg</button>
+            `;
+        document.getElementById("flight-legs").appendChild(newLeg);
+
+        // Add event listener to the new remove button
+        newLeg
+          .querySelector(".remove-leg")
+          .addEventListener("click", function () {
+            document.getElementById("flight-legs").removeChild(newLeg);
+          });
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

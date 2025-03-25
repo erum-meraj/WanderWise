@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flight Results</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .flight-card {
+        margin-bottom: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .flight-header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 15px;
+      }
+      .segment {
+        border-left: 3px solid #0d6efd;
+        padding-left: 10px;
+        margin-bottom: 15px;
+      }
+      .airline-logo {
+        width: 40px;
+        height: 40px;
+        background-color: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1 class="mb-4">Flight Offers</h1>
+
+      {% if not offers %}
+      <div class="alert alert-info">
+        No flight offers found for your search criteria.
+      </div>
+      {% endif %} {% for offer in offers %}
+      <div class="card flight-card">
+        <div class="flight-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+              {{ offer.price.total }} {{ offer.price.currency }}
+            </h4>
+            <span class="badge bg-light text-dark"
+              >{{ offer.itineraries|length }} itinerary options</span
+            >
+          </div>
+        </div>
+        <div class="card-body">
+          {% for itinerary in offer.itineraries %}
+          <div class="mb-4">
+            <h5>Itinerary {{ loop.index }}</h5>
+            <p><strong>Total Duration:</strong> {{ itinerary.duration }}</p>
+
+            {% for segment in itinerary.segments %}
+            <div class="segment">
+              <div class="d-flex align-items-center mb-2">
+                <div class="airline-logo">{{ segment.carrierCode }}</div>
+                <div>
+                  <h6 class="mb-0">
+                    Flight {{ segment.carrierCode }}{{ segment.number }}
+                  </h6>
+                  {% if segment.operating %}
+                  <small class="text-muted">
+                    Operated by {{ segment.operating.carrierCode }}{{
+                    segment.operating.number }}
+                  </small>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <p class="mb-1"><strong>Departure:</strong></p>
+                  <p class="mb-0">
+                    {{ segment.departure.iataCode }} at {{ segment.departure.at
+                    }}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <p class="mb-1"><strong>Arrival:</strong></p>
+                  <p class="mb-0">
+                    {{ segment.arrival.iataCode }} at {{ segment.arrival.at }}
+                  </p>
+                </div>
+              </div>
+              <p class="mb-0">
+                <strong>Duration:</strong> {{ segment.duration }}
+              </p>
+              {% if segment.aircraft %}
+              <p class="mb-0">
+                <strong>Aircraft:</strong> {{ segment.aircraft.code }}
+              </p>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% if not loop.last %}
+          <hr />
+          {% endif %} {% endfor %}
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button class="btn btn-primary">Book Now</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="mt-4">
+        <a href="/" class="btn btn-outline-primary">New Search</a>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
