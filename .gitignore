@@ -4,7 +4,8 @@ __pycache__/
 instance/
 .webassets-cache
 
-.we-trail-tales-firebase-adminsdk-fbsvc-b7110d9c76.json
+# Firebase Admin SDK Token
+we-trail-tales-firebase-adminsdk-*.json
 
 
 # SQLite databases
