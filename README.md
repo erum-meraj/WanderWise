@@ -1,43 +1,48 @@
-# We Trail Tales
+# WanderWise Travel Agent AI Bot
 
 ## Overview
 
-We Trail Tales is a comprehensive travel platform that enables users to explore diverse cultures, plan trips, and share their travel experiences through blogs, photos, videos, and podcasts. The platform also provides cultural insights, a chatbot, and a translation tool to enhance user engagement. Future enhancements include a leaderboard system where users can earn points for their contributions and redeem them for trip discounts.
+The WanderWise Travel Agent AI Bot is an intelligent travel assistant designed to help users plan flexible itineraries, get real-time travel assistance, and explore travel stories through blogs, videos, and podcasts. It also provides historical and cultural insights about various destinations.
+
+The bot leverages _Azure OpenAI (GPT-4)_ for conversational AI, _Amadeus API_ for flight and hotel bookings, and _Tavily Search_ for retrieving external information. Responsible AI practices are ensured through _PII removal and other guardrails_.
 
 ## Features
 
-- **User-Generated Content:** Users can create and share travel stories, including blogs, photos, videos, and podcasts.
-- **Content Organization:** Posts are categorized and displayed collectively or by specific categories for better accessibility.
-- **Trip Planning:** Users can plan their trips with curated recommendations and insights about various destinations.
-- **Cultural Insights:** Provides historical and cultural details about different locations.
-- **Chatbot & Translation Tool:** Enhances user experience by providing travel assistance and multilingual support.
-- **Leaderboard System (Upcoming):** Users will accumulate points based on contributions, which can be redeemed for travel discounts.
+- _AI Itinerary Planner_: Generates flexible travel plans based on user preferences.
+- _AI Travel Assistant_: Answers user queries about destinations, flights, hotels, and more.
+- _Content Sharing Platform_: Users can post blogs, videos, and podcasts to share travel experiences.
+- _Historical & Cultural Insights_: Provides informative details about destinations.
+- _Secure AI Practices_: Implements PII removal and other safety measures.
+- _External Search Support_: Uses Tavily Search to enhance response quality.
 
 ## Tech Stack
 
-- **Frontend:** HTML, CSS, JavaScript, Bootstrap
-- **Backend:** Flask, Python
-- **Database:** SQLite
-- **Authentication & Storage:** Firebase
-- **APIs:** External APIs for authentication and data retrieval
+- _Frontend: HTML, CSS, JavaScript, Bootstrap_
+- Backend: Flask, Python
+- Database: SQLite
+- Authentication & Storage: Firebase
+- _APIs_:
+  - _Amadeus API_ (Flight & Hotel Booking)
+  - _Tavily Search API_ (External Query Resolution)
+- _Security_: PII Removal and Guardrails for Responsible AI
 
 ## Installation
 
 ### Prerequisites
 
-Ensure you have the following installed:
-
-- Python 3.x
-- Flask
-- SQLite
-- Firebase Admin SDK credentials
+- Python 3.8+
+- Node.js & npm (for frontend)
+- PostgreSQL / MongoDB (for database)
+- Azure OpenAI API key
+- Amadeus API credentials
+- Tavily API key
 
 ### Setup Instructions
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/pankhuri92/Trail-Tales.git
-   cd we-trail-tales
+   git clone https://github.com/erum-meraj/WanderWise
+   cd WanderWise
    ```
 2. Create and activate a virtual environment:
    ```sh
@@ -70,6 +75,54 @@ Ensure you have the following installed:
 | Create Post    | ![Create Post](static/post_ss.png)   |
 | Trip Planning  | ![Trip Planning](static/plan_ss.png) |
 
+## Flow Diagram for Travel Planner Chatbot
+
+                      +----------------------------------+
+                      |      User Interacts with Bot    |
+                      +----------------------------------+
+                                     |
+                      +----------------------------------+
+                      |  AI Asks for Preferences        |
+                      |  (Destination, Budget, Dates,  |
+                      |  Interests)                    |
+                      +----------------------------------+
+                                     |
+                      +----------------------------------+
+                      |  AI Generates Itinerary        |
+                      |  (GPT-4 Processes & Refines)   |
+                      +----------------------------------+
+                                     |
+                      +----------------------------------+
+                      |  User Reviews & Confirms Plan  |
+                      +----------------------------------+
+                                     |
+           +-------------------------+-------------------------+
+           |                                                   |
+
++--------------------------+ +--------------------------+
+| Fetch Flight & Hotel | | Provide Historical & |
+| Options (Amadeus API) | | Cultural Insights |
++--------------------------+ | Based on Location |
+| +--------------------------+
++--------------------------+ |
+| User Selects & Books | |
++--------------------------+ |
+| |
++--------------------------+ |
+| AI Uses Tavily Search | <---------------------------------+
+| to Answer Queries |
++--------------------------+
+|
++--------------------------+
+| User Can Post Blogs, |
+| Videos, Podcasts |
++--------------------------+
+|
++--------------------------+
+| Guardrails for Responsible AI |
+| (PII Remover, Privacy, Security) |
++--------------------------+
+
 ## Contribution
 
 Contributions are welcome! Follow these steps:
@@ -83,5 +136,3 @@ Contributions are welcome! Follow these steps:
 ## License
 
 This project is licensed under the MIT License.
-
-
