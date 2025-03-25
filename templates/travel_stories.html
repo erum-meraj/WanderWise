@@ -83,7 +83,7 @@
         background-position: center;
       "
     >
-      <div
+      <!-- <div
         style="
           background: rgba(0, 0, 0, 0.5);
           position: absolute;
@@ -92,7 +92,7 @@
           width: 100%;
           height: 100%;
         "
-      ></div>
+      ></div> -->
       <div class="container position-relative" style="z-index: 1">
         <h1>Explore Travel Stories</h1>
         <ul class="nav nav-tabs justify-content-center mt-4" role="tablist">
@@ -470,23 +470,25 @@
         <section class="container mt-5 py-3">
           <h2 class="text-center mb-4">Photography</h2>
           <div class="row g-4">
-              <!-- Post 1 -->
-              <div class="col-md-4">
-                <a href="post1.html" class="text-decoration-none">
-                  <div class="card">
-                    <img
-                      src="{{ url_for('static', filename='Carousel.png') }}"
-                      class="card-img-top"
-                      alt="Post 1"
-                    />
-                    <div class="card-body">
-                      <h5 class="card-title">Exploring the Culinary Heart of Italy</h5>
-                      <p class="card-text">A brief preview of the post content</p>
-                      <a href="post1.html" class="btn btn-primary">View More</a>
-                    </div>
+            <!-- Post 1 -->
+            <div class="col-md-4">
+              <a href="post1.html" class="text-decoration-none">
+                <div class="card">
+                  <img
+                    src="{{ url_for('static', filename='Carousel.png') }}"
+                    class="card-img-top"
+                    alt="Post 1"
+                  />
+                  <div class="card-body">
+                    <h5 class="card-title">
+                      Exploring the Culinary Heart of Italy
+                    </h5>
+                    <p class="card-text">A brief preview of the post content</p>
+                    <a href="post1.html" class="btn btn-primary">View More</a>
                   </div>
-                </a>
-              </div>
+                </div>
+              </a>
+            </div>
             {% for blog in blogs if blog.category == 'Photo' %}
             <div class="col-md-4">
               <div class="card mb-4 transition-hover">
@@ -541,7 +543,9 @@
                     allowfullscreen
                   ></iframe>
                   <div class="card-body">
-                    <h5 class="card-title">Jungle Adventures on a Shoestring</h5>
+                    <h5 class="card-title">
+                      Jungle Adventures on a Shoestring
+                    </h5>
                     <p class="card-text">A brief preview of the post content</p>
                     <a href="post2.html" class="btn btn-primary">View More</a>
                   </div>
@@ -552,13 +556,16 @@
             <div class="col-md-4">
               <div class="card">
                 <video controls width="100%" height="250">
-                  <source src="{{ blog.video_url }}" type="video/mp4">
+                  <source src="{{ blog.video_url }}" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
                 <div class="card-body">
                   <h5 class="card-title">{{ blog.title }}</h5>
                   <p class="card-text">{{ blog.content[:50] }}...</p>
-                  <a href="{{ url_for('view_blog', blog_id=blog.id) }}" class="btn btn-primary">
+                  <a
+                    href="{{ url_for('view_blog', blog_id=blog.id) }}"
+                    class="btn btn-primary"
+                  >
                     View More
                   </a>
                 </div>
@@ -586,7 +593,10 @@
                     Your browser does not support the audio element.
                   </audio>
                   <h5 class="card-title mt-3">Backpacking Borneo</h5>
-                  <p class="card-text">Borneo's wild heart doesn't have to break the bank. Discover the island's incredible biodiversity!</p>
+                  <p class="card-text">
+                    Borneo's wild heart doesn't have to break the bank. Discover
+                    the island's incredible biodiversity!
+                  </p>
                   <a href="post1.html" class="btn btn-primary">View More</a>
                 </div>
               </div>
@@ -603,7 +613,10 @@
                     Your browser does not support the audio element.
                   </audio>
                   <h5 class="card-title mt-3">Eco-Escape</h5>
-                  <p class="card-text">The symphony of the rainforest woke me each morning, a chorus of monkeys and exotic birds</p>
+                  <p class="card-text">
+                    The symphony of the rainforest woke me each morning, a
+                    chorus of monkeys and exotic birds
+                  </p>
                   <a href="post1.html" class="btn btn-primary">View More</a>
                 </div>
               </div>
@@ -613,12 +626,15 @@
               <div class="card text-center">
                 <div class="card-body">
                   <audio controls class="w-100">
-                    <source src="{{ blog.audio_url }}" type="audio/mpeg">
+                    <source src="{{ blog.audio_url }}" type="audio/mpeg" />
                     Your browser does not support the audio element.
                   </audio>
                   <h5 class="card-title mt-3">{{ blog.title }}</h5>
                   <p class="card-text">{{ blog.content[:50] }}...</p>
-                  <a href="{{ url_for('view_blog', blog_id=blog.id) }}" class="btn btn-primary">
+                  <a
+                    href="{{ url_for('view_blog', blog_id=blog.id) }}"
+                    class="btn btn-primary"
+                  >
                     View More
                   </a>
                 </div>
