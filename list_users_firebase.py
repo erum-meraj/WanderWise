@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, auth
 
 # Initialize Firebase Admin SDK (Ensure the JSON file path is correct)
-cred = credentials.Certificate("we-trail-tales-firebase-adminsdk-fbsvc-b7110d9c76.json")
+cred = credentials.Certificate("we-trail-tales-firebase-adminsdk-fbsvc-59fdb71862.json")
 firebase_admin.initialize_app(cred)
 
 # Function to retrieve and print all users
