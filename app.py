@@ -255,19 +255,24 @@ def signup():
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
+        print(f"Signup Attempt - Email: {email}, Password: {password}")  # Debugging
 
         if not email or not password:
             flash("Email and password are required!", "danger")
             return redirect(url_for('signup'))
 
         try:
+            print("Trying to create user in Firebase...")  # Debugging
             user = auth.create_user(email=email, password=password)
+            print(f"User Created Successfully - UID: {user.uid}")  # Debugging
             flash("Account created successfully! Please log in.", "success")
             return redirect(url_for("login"))
         except Exception as e:
+            print(f"Signup Error: {str(e)}")  # Print the actual error in terminal
             flash(f"Signup error: {str(e)}", "danger")
-    
+
     return render_template("signup.html")
+
 
 @app.route('/logout')
 def logout():
