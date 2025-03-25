@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card-body { text-align: center; }
+        .card-title, .card-text { color: black; font-family: 'Georgia', serif; }
+        .btn-primary { background-color: teal; border-color: teal; }
+        .btn-primary:hover { background-color: #005f5f; border-color: #005f5f; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Blogs</h2>
+        <div class="row g-4">
+            {% for blog in blogs if blog.category == 'Blog' %}
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="{{ blog.image_url or '/default.jpg' }}" class="card-img-top" alt="{{ blog.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ blog.title }}</h5>
+                        <p class="card-text">{{ blog.content }}</p>
+                        <a href="{{ url_for('view_blog', blog_id=blog.id) }}" class="btn btn-primary">View More</a>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
