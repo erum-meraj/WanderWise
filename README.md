@@ -77,7 +77,7 @@ The bot leverages _Azure OpenAI (GPT-4)_ for conversational AI, _Amadeus API_ fo
 
 ## Travel Bot Flowchart
 
-![Travel Bot Flowchart](static/Flow Diagram.png)
+![Travel Bot Flowchart](static/Flow_Diagram.png)
 
 ## Contribution
 
