@@ -5,6 +5,11 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 import firebase_admin
 from firebase_admin import credentials, auth
+from api_param_ext import extract_travel_info
+import markdown
+from flight_func import get_flight_offers
+from hotel_func import get_hotel_offers
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Generate a random secret key for session security
@@ -24,6 +29,16 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Ensure the upload folder exists
 
 db = SQLAlchemy(app)
 
+# Configuration
+FLIGHT_API_URL = "https://test.api.amadeus.com/v1/security/oauth2/token"
+HOTEL_API_URL = "https://test.api.amadeus.com/v3/shopping/hotel-offers"
+TOKEN_URL = "https://test.api.amadeus.com/v1/security/oauth2/token"
+
+# API credentials (in a real app, these should be in environment variables)
+FLIGHT_API_KEY = "P0H5Nt1hmixtoHkwUD6w8T8PG45J"
+HOTEL_API_KEY = "jH4yZd6iyZEy8XF3NrreWC9FgcSP"
+
+
 # Firebase Admin SDK Initialization
 cred = credentials.Certificate("we-trail-tales-firebase-adminsdk-fbsvc-59fdb71862.json")  
 firebase_admin.initialize_app(cred)
@@ -42,6 +57,9 @@ class Blog(db.Model):
     video_url = db.Column(db.String(255), nullable=True)
     audio_url = db.Column(db.String(255), nullable=True)
     date_published = db.Column(db.Date, nullable=False, default=datetime.date.today)
+
+
+final_plan = ""
 
 @app.before_request
 def initialize_session_variables():
@@ -81,9 +99,18 @@ def chatbot():
         user_message = data.get("message", "").strip()
         if not user_message:
             return jsonify({"error": "Message cannot be empty"}), 400
-
+        
         # Get messages from session and add new user message
         messages = session.get('messages', [])
+        
+        # Check for "Thanks" message
+        if user_message.lower() == 'thanks':
+            # Store the final plan in session before redirecting
+            if messages and messages[-1]['role'] == 'assistant':
+                session['final_plan'] = messages[-1]['content']
+            # Return a response that tells the client to redirect
+            return jsonify({"redirect": "/final_trip_plan"})
+        
         messages.append({"role": "user", "content": user_message})
         
         headers = {
@@ -291,6 +318,134 @@ def logout():
 @app.route('/plan-your-trip')
 def plan_your_trip():
     return render_template('plan_trip.html')
+
+CLIENT_ID = "Xwjs1dXdMvJYJhoOuZWON44ImGCwpZZI"
+CLIENT_SECRET = "6ugKGuGqpHORjpCd"
+ACCESS_TOKEN = None
+TOKEN_EXPIRATION = None
+
+def get_access_token():
+    """Get access token from Amadeus API"""
+    global ACCESS_TOKEN, TOKEN_EXPIRATION
+    url = "https://test.api.amadeus.com/v1/security/oauth2/token"
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    data = {
+        "grant_type": "client_credentials",
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, data=data)
+        response.raise_for_status()
+        token_data = response.json()
+        ACCESS_TOKEN = token_data["access_token"]
+        expires_in = token_data.get("expires_in", 1800)
+        TOKEN_EXPIRATION = datetime.now().timestamp() + expires_in
+        return True
+    except Exception as e:
+        print(f"Error obtaining access token: {e}")
+        return False
+# def get_flight_offers():
+#     """Fetch flight offers from Amadeus API"""
+#     url = "https://test.api.amadeus.com/v2/shopping/flight-offers"
+#     headers = {
+#         "Authorization": f"Bearer {ACCESS_TOKEN}",
+#         "Content-Type": "application/json"
+#     }
+#     payload = {
+#         "originDestinations": [
+#             {
+#                 "id": "1",
+#                 "originLocationCode": "BOM",
+#                 "destinationLocationCode": "PAR",
+#                 "departureDateTimeRange": {
+#                     "date": "2025-03-29"
+#                 }
+#             }
+#         ],
+#         "travelers": [
+#             {
+#                 "id": "1",
+#                 "travelerType": "ADULT",
+#                 "fareOptions": ["STANDARD"]
+#             },
+#             {
+#                 "id": "2",
+#                 "travelerType": "ADULT",
+#                 "fareOptions": ["STANDARD"]
+#             }
+#         ],
+#         "sources": ["GDS"],
+#         "searchCriteria": {
+#             "maxFlightOffers": 2
+#         }
+#     }
+    
+#     try:
+#         response = requests.post(url, headers=headers, json=payload)
+#         response.raise_for_status()
+#         return response.json().get('data', [])
+#     except requests.exceptions.RequestException as e:
+#         print(f"Error fetching flight offers: {e}")
+#         return []
+# def get_hotel_offers():
+#     """Fetch hotel offers from Amadeus API"""
+#     url = "https://test.api.amadeus.com/v3/shopping/hotel-offers"
+#     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+    
+#     params = {
+#         'hotelIds': 'MCLONGHM',
+#         'adults': 2,
+#         'checkInDate': '2025-03-29',
+#         'checkOutDate': '2025-03-31',
+#         'roomQuantity': 1,
+#         'currency': 'USD'
+#     }
+    
+#     try:
+#         response = requests.get(url, headers=headers, params=params)
+#         response.raise_for_status()
+#         return response.json().get('data', [])
+#     except requests.exceptions.RequestException as e:
+#         print(f"Error fetching hotel offers: {e}")
+#         return []
+
+
+@app.route('/check_final_plan')
+def check_final_plan():
+    final_plan = session.get('final_plan')
+    return jsonify({'has_plan': final_plan is not None})
+
+@app.route('/final_trip_plan')
+def final_trip_plan():
+    # Get the final plan from session
+    final_plan = session.get('final_plan', 'No trip plan generated yet.')
+    
+    flight_offers = get_flight_offers()
+    hotel_offers = get_hotel_offers()
+    
+    # Prepare search parameters for the template
+    search_params = {
+        'originLocationCode': 'BOM',
+        'destinationLocationCode': 'PAR',
+        'checkInDate': '2025-03-29',
+        'checkOutDate': '2025-03-31',
+        'adults': 2,
+        'roomQuantity': 1
+    }
+    
+    # Convert markdown to HTML
+    plan_description_html = markdown.markdown(final_plan)
+    
+    # Render the combined template
+    return render_template(
+        'combined_results.html',
+        offers=flight_offers,
+        hotels=hotel_offers,
+        search_params=search_params,
+        plan_description=plan_description_html
+    )
 
 if __name__ == '__main__':
     with app.app_context():

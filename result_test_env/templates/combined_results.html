@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Search Results</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <style>
+      /* Flight card styles */
+      .flight-card {
+        margin-bottom: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .flight-header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 15px;
+      }
+      .segment {
+        border-left: 3px solid #0d6efd;
+        padding-left: 10px;
+        margin-bottom: 15px;
+      }
+      .airline-logo {
+        width: 40px;
+        height: 40px;
+        background-color: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+      }
+
+      /* Hotel card styles */
+      .hotel-card {
+        margin-bottom: 30px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .hotel-header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 20px;
+      }
+      .offer-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .price-highlight {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #198754;
+      }
+      .badge-custom {
+        margin-right: 5px;
+        margin-bottom: 5px;
+      }
+      .room-description {
+        white-space: pre-line;
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .policy-badge {
+        font-size: 0.85rem;
+      }
+
+      /* Combined page styles */
+      .section-title {
+        margin: 40px 0 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #0d6efd;
+      }
+      .search-params {
+        margin-bottom: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container py-4">
+      <h1 class="text-center mb-4">Travel Search Results</h1>
+
+      <!-- Search Parameters Section -->
+      <div class="search-params p-3 bg-light rounded">
+        <h5>Search Parameters:</h5>
+        <div class="row">
+          <div class="col-md-4">
+            <p class="mb-1">
+              <strong>Check-in:</strong> {{ search_params.checkInDate }}
+            </p>
+            <p class="mb-1">
+              <strong>Check-out:</strong> {{ search_params.checkOutDate }}
+            </p>
+          </div>
+          <div class="col-md-4">
+            <p class="mb-1">
+              <strong>Guests:</strong> {{ search_params.adults }} adult(s)
+            </p>
+            <p class="mb-1">
+              <strong>Rooms:</strong> {{ search_params.roomQuantity }}
+            </p>
+          </div>
+          <div class="col-md-4">
+            <p class="mb-1">
+              <strong>Origin:</strong> {{ search_params.originLocationCode }}
+            </p>
+            <p class="mb-1">
+              <strong>Destination:</strong> {{
+              search_params.destinationLocationCode }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flight Results Section -->
+      <h2 class="section-title">Flight Offers</h2>
+
+      {% if not offers %}
+      <div class="alert alert-info">
+        No flight offers found for your search criteria.
+      </div>
+      {% endif %} {% for offer in offers %}
+      <div class="card flight-card">
+        <div class="flight-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+              {{ offer.price.total }} {{ offer.price.currency }}
+            </h4>
+            <span class="badge bg-light text-dark"
+              >{{ offer.itineraries|length }} itinerary options</span
+            >
+          </div>
+        </div>
+        <div class="card-body">
+          {% for itinerary in offer.itineraries %}
+          <div class="mb-4">
+            <h5>Itinerary {{ loop.index }}</h5>
+            <p><strong>Total Duration:</strong> {{ itinerary.duration }}</p>
+
+            {% for segment in itinerary.segments %}
+            <div class="segment">
+              <div class="d-flex align-items-center mb-2">
+                <div class="airline-logo">{{ segment.carrierCode }}</div>
+                <div>
+                  <h6 class="mb-0">
+                    Flight {{ segment.carrierCode }}{{ segment.number }}
+                  </h6>
+                  {% if segment.operating %}
+                  <small class="text-muted">
+                    Operated by {{ segment.operating.carrierCode }}{{
+                    segment.operating.number }}
+                  </small>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <p class="mb-1"><strong>Departure:</strong></p>
+                  <p class="mb-0">
+                    {{ segment.departure.iataCode }} at {{ segment.departure.at
+                    }}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <p class="mb-1"><strong>Arrival:</strong></p>
+                  <p class="mb-0">
+                    {{ segment.arrival.iataCode }} at {{ segment.arrival.at }}
+                  </p>
+                </div>
+              </div>
+              <p class="mb-0">
+                <strong>Duration:</strong> {{ segment.duration }}
+              </p>
+              {% if segment.aircraft %}
+              <p class="mb-0">
+                <strong>Aircraft:</strong> {{ segment.aircraft.code }}
+              </p>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% if not loop.last %}
+          <hr />
+          {% endif %} {% endfor %}
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button class="btn btn-primary">Book Now</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Hotel Results Section -->
+      <h2 class="section-title">Hotel Offers</h2>
+
+      {% if not hotels %}
+      <div class="alert alert-info">
+        No hotels found matching your criteria.
+      </div>
+      {% endif %} {% for hotel in hotels %}
+      <div class="card hotel-card">
+        <div class="hotel-header">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h2>{{ hotel.hotel.name }}</h2>
+              <p class="mb-0">
+                <i class="bi bi-geo-alt"></i> {{ hotel.hotel.cityCode }} • {{
+                hotel.hotel.latitude|round(5) }}, {{
+                hotel.hotel.longitude|round(5) }}
+              </p>
+            </div>
+            <div>
+              <span class="badge bg-light text-dark"
+                >{{ hotel.hotel.chainCode }}</span
+              >
+              <span
+                class="badge bg-{{ 'success' if hotel.available else 'danger' }}"
+              >
+                {{ 'Available' if hotel.available else 'Not Available' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          {% for offer in hotel.offers %}
+          <div class="offer-card">
+            <div class="row">
+              <div class="col-md-8">
+                <div class="d-flex justify-content-between align-items-start">
+                  <h4>{{ offer.room.typeEstimated.category }}</h4>
+                  <span class="badge bg-secondary">{{ offer.rateCode }}</span>
+                </div>
+
+                <div class="d-flex flex-wrap my-2">
+                  <span class="badge bg-primary badge-custom">
+                    <i class="bi bi-person-bed"></i> {{
+                    offer.room.typeEstimated.beds }} {{
+                    offer.room.typeEstimated.bedType }}
+                  </span>
+                  <span class="badge bg-info badge-custom">
+                    <i class="bi bi-arrows-fullscreen"></i> {{
+                    offer.room.description.text.split(',')[2].strip() if
+                    offer.room.description.text else 'Size not specified' }}
+                  </span>
+                  <span class="badge bg-warning text-dark badge-custom">
+                    <i class="bi bi-credit-card"></i> {{
+                    offer.policies.paymentType|title }}
+                  </span>
+                </div>
+
+                <div class="room-description mb-3">
+                  {{ offer.room.description.formatted_text|safe }}
+                </div>
+
+                <div class="d-flex align-items-center mb-3">
+                  <span
+                    class="badge bg-{{ 'success' if offer.policies.refundable.cancellationRefund == 'REFUNDABLE' else 'danger' }} policy-badge me-2"
+                  >
+                    {{ offer.policies.cancellations[0].description.text }}
+                  </span>
+                  <small class="text-muted"
+                    >Rate Family: {{ offer.rateFamilyEstimated.code }}</small
+                  >
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="bg-light p-3 rounded">
+                  <div class="price-highlight text-center mb-2">
+                    {{ offer.price.total }} {{ offer.price.currency }}
+                  </div>
+                  <p class="text-center text-muted mb-3">
+                    ({{ offer.price.base }} base + taxes)
+                  </p>
+
+                  <div class="d-grid gap-2">
+                    <a
+                      href="{{ offer.self }}"
+                      class="btn btn-primary"
+                      target="_blank"
+                    >
+                      <i class="bi bi-bookmark-check"></i> Book Now
+                    </a>
+                    <button class="btn btn-outline-secondary">
+                      <i class="bi bi-info-circle"></i> More Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% if offer.price.variations.changes %}
+            <div class="mt-4">
+              <h5><i class="bi bi-calendar-week"></i> Nightly Rates</h5>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Date</th>
+                      <th>Base Rate</th>
+                      <th>Avg. Nightly</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for change in offer.price.variations.changes %}
+                    <tr>
+                      <td>{{ change.startDate }} to {{ change.endDate }}</td>
+                      <td>{{ change.base }} {{ offer.price.currency }}</td>
+                      <td>
+                        {{ offer.price.variations.average.base }} {{
+                        offer.price.currency }}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="text-center mt-4">
+        <a href="/" class="btn btn-outline-primary btn-lg">
+          <i class="bi bi-arrow-left"></i> New Search
+        </a>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
