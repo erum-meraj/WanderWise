@@ -92,7 +92,7 @@ def dashboard():
 @app.route('/chatbot', methods=['POST'])
 def chatbot():
     try:
-        data = request.get_json()
+        data = request.get_json()  # Safer way to get JSON data
         if not data:
             return jsonify({"error": "No data provided"}), 400
             
@@ -128,6 +128,7 @@ def chatbot():
 
         if response.status_code == 200:
             ai_response = response.json().get("choices", [{}])[0].get("message", {}).get("content", "Sorry, I couldn't process that request.")
+            # Add AI response to messages and update session
             messages.append({"role": "assistant", "content": ai_response})
             session['messages'] = messages
             session.modified = True
@@ -144,18 +145,9 @@ def chatbot():
 @app.route('/clear_chat', methods=['POST'])
 def clear_chat():
     try:
-        # Reset the chat history with updated system message
+        # Reset the chat history while keeping the system message
         session['messages'] = [
-            {
-                "role": "system",
-                "content": (
-                    "You are a helpful travel assistant. Before providing any travel itinerary, "
-                    "collect the following required details: number of days for the trip, origin-destination details, "
-                    "and traveler count. If any information is missing, ask the user for it. "
-                    "Once all details are gathered, generate a personalized and detailed travel itinerary. "
-                    "Take feedback and adjust the plan accordingly."
-                )
-            }
+            {"role": "system", "content": "You are a helpful travel assistant who creates and updates detailed and personalized travel itineraries. Take feedback and adjust the plan accordingly."}
         ]
         session.modified = True
         return jsonify({"status": "Chat history cleared"})
@@ -169,9 +161,10 @@ def get_chat_history():
 @app.route('/start_chat', methods=['GET'])
 def start_chat():
     try:
+        # Check if this is a new conversation (only system message exists)
         messages = session.get('messages', [])
         if len(messages) <= 1:
-            greeting = "Hello! I'm your travel assistant. Let's start planning your trip. Can you provide the trip duration, origin, destination, and the number of travelers?"
+            greeting = "Hello! I'm your travel assistant. How can I help you plan your trip today?"
             messages.append({"role": "assistant", "content": greeting})
             session['messages'] = messages
             session.modified = True
@@ -179,7 +172,6 @@ def start_chat():
         return jsonify({"greeting": None})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/travel_stories')
 def travel_stories():
