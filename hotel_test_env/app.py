@@ -62,6 +62,7 @@ def index():
         headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
         
         try:
+            print(headers, params)
             response = requests.get(url, headers=headers, params=params)
             response.raise_for_status()
             data = response.json()

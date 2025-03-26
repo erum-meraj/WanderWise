@@ -27,7 +27,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
       <div class="container">
-        <a class="navbar-brand" href="#">Trail Tales</a>
+        <a class="navbar-brand" href="#">WanderWise AI</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -103,20 +103,24 @@
         <div class="row">
           <div class="col-md-8 mx-auto">
             <!-- Media Display -->
-              <!-- Media Display -->
-              {% if blog.video_url %}
-              <video controls width="100%">
-                <source src="{{ blog.video_url }}" type="video/mp4">
-                Your browser does not support the video tag.
-              </video>
-              {% elif blog.audio_url %}
-              <audio controls>
-                <source src="{{ blog.audio_url }}" type="audio/mpeg">
-                Your browser does not support the audio element.
-              </audio>
-              {% elif blog.image_url %}
-              <img src="{{ blog.image_url }}" class="img-fluid" alt="{{ blog.title }}" />
-              {% endif %}
+            <!-- Media Display -->
+            {% if blog.video_url %}
+            <video controls width="100%">
+              <source src="{{ blog.video_url }}" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            {% elif blog.audio_url %}
+            <audio controls>
+              <source src="{{ blog.audio_url }}" type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+            {% elif blog.image_url %}
+            <img
+              src="{{ blog.image_url }}"
+              class="img-fluid"
+              alt="{{ blog.title }}"
+            />
+            {% endif %}
 
             <p class="text-muted">
               Published on {{ blog.date_published.strftime('%B %d, %Y') if

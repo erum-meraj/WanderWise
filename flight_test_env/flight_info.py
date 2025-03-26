@@ -64,6 +64,7 @@ def get_flight_offers(origin_destinations, travelers, max_offers=1):
     
     try:
         print("\nSearching for flight offers...")
+        print(headers, payload)
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         return response.json()

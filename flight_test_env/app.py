@@ -97,6 +97,8 @@ def index():
         }
         
         try:
+            print(headers)
+            print(flight_data)
             response = requests.post(url, headers=headers, json=flight_data)
             response.raise_for_status()
             flight_offers = response.json()
