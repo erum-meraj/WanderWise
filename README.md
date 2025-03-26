@@ -12,8 +12,8 @@ The bot leverages _Azure OpenAI (GPT-4)_ for conversational AI, _Amadeus API_ fo
 - _AI Travel Assistant_: Answers user queries about destinations, flights, hotels, and more.
 - _Content Sharing Platform_: Users can post blogs, videos, and podcasts to share travel experiences.
 - _Historical & Cultural Insights_: Provides informative details about destinations.
-- _Secure AI Practices_: Implements PII removal and other safety measures.
-- _External Search Support_: Uses Tavily Search to enhance response quality.
+- _Secure AI Practices_: Implements PII removal and other safety measures.(Upcoming)
+- _External Search Support_: Uses Tavily Search to enhance response quality.(Upcoming)
 
 ## Tech Stack
 
@@ -23,8 +23,8 @@ The bot leverages _Azure OpenAI (GPT-4)_ for conversational AI, _Amadeus API_ fo
 - Authentication & Storage: Firebase
 - _APIs_:
   - _Amadeus API_ (Flight & Hotel Booking)
-  - _Tavily Search API_ (External Query Resolution)
-- _Security_: PII Removal and Guardrails for Responsible AI
+  - _Tavily Search API_ (External Query Resolution) (Upcoming)
+- _Security_: PII Removal and Guardrails for Responsible AI (Upcoming)
 
 ## Installation
 
@@ -35,7 +35,6 @@ The bot leverages _Azure OpenAI (GPT-4)_ for conversational AI, _Amadeus API_ fo
 - PostgreSQL / MongoDB (for database)
 - Azure OpenAI API key
 - Amadeus API credentials
-- Tavily API key
 
 ### Setup Instructions
 
